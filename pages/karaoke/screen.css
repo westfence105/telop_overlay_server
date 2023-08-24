@@ -1,0 +1,29 @@
+body {
+  background-color: transparent;
+}
+
+#song_list {
+  margin: 20px auto auto 10px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
+  width: 450px;
+  height: 90vh;
+  font-size: 18px;
+}
+
+#song_title {
+  margin: auto;
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  right: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  padding: 12px 24px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  min-width: 20%;
+  width: fit-content;
+  font-weight: bold;
+  font-size: 28px;
+}
