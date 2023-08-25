@@ -4,7 +4,8 @@ RM    := rm
 BINDIR   := bin
 BUILDDIR := build
 
-CFLAGS += -Isrc/server -std=c++2a
+CFLAGS  += -Isrc/server -std=c++2a
+LDFLAGS += -lpthread
 
 all: $(BUILDDIR) $(BINDIR) $(BINDIR)/server$(EXT)
 

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <functional>
 
 #include <cstdio>
 #include <cstring>
@@ -9,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <HttpServer.hpp>
 #include <HttpRequest.hpp>
@@ -21,38 +23,66 @@ HttpServer::HttpServer(int port) {
 }
 
 void HttpServer::start() {
+  int status;
   int srcSock, destSock;
   struct sockaddr_in srcAddr, destAddr;
   socklen_t destAddrSize;
-  size_t recvSize;
-  char buf[BUFSIZE+1];
 
   srcAddr.sin_port = htons(m_port);
   srcAddr.sin_family = AF_INET;
   srcAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
   srcSock = socket(AF_INET, SOCK_STREAM, 0);
-  bind(srcSock, (struct sockaddr*)&srcAddr, sizeof(srcAddr));
-
-  while(1) {
-    std::ostringstream oss;
-    listen(srcSock, 3);
-    destSock = accept(srcSock, (struct sockaddr*)&destAddr, &destAddrSize);
-
-    do {
-      memset(buf, 0, BUFSIZE+1);
-      recvSize = recv(destSock, buf, BUFSIZE, 0);
-      oss << buf;
-    } while (recvSize >= BUFSIZE);
-
-    handle_request(oss.str(), destSock);
-
-    close(destSock);
+  struct timeval timeout;
+  timeout.tv_sec = 5;
+  timeout.tv_usec = 0;
+  status = setsockopt(srcSock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+  for (int i = 0; i < 3; ++i) {
+    if ((status = bind(srcSock, (struct sockaddr*)&srcAddr, sizeof(srcAddr))) == 0) {
+      break;
+    }
   }
+  if (status) {
+    std::cerr << "Error while binding socket." << std::endl;
+    return;
+  }
+
+  bool loop = true;
+  m_threads.push_back(std::thread([&] () {
+    char buf;
+    std::cout << "Server running on port " << m_port << "...\nPress 'x' to stop." << std::endl;
+    do {
+      std::cin >> buf;
+    } while (buf != 'x');
+    loop = false;
+  }));
+
+  listen(srcSock, 10);
+  while (loop) {
+    destSock = accept(srcSock, (struct sockaddr*)&destAddr, &destAddrSize);
+    if (destSock >= 0) {
+      m_threads.push_back(std::thread(std::bind(&HttpServer::handle_request, this, destSock)));
+    }
+  }
+
+  for (auto& t : m_threads) {
+    t.join();
+  }
+
+  close(srcSock);
 }
 
-void HttpServer::handle_request(const std::string& requestStr, int destSock) {
-  HttpRequest request(requestStr);
+void HttpServer::handle_request(int destSock) {
+  size_t recvSize;
+  char buf[BUFSIZE+1];
+  std::ostringstream oss;
+  do {
+    memset(buf, 0, BUFSIZE+1);
+    recvSize = recv(destSock, buf, BUFSIZE, 0);
+    oss << buf;
+  } while (recvSize >= BUFSIZE);
+
+  HttpRequest request(oss.str());
 
   std::string path = request.path();
   if (path.starts_with("/api")) {
@@ -74,6 +104,7 @@ void HttpServer::handle_request(const std::string& requestStr, int destSock) {
       response.send(destSock);
     }
     else if (parsedPath.size() == 2 && parsedPath[0] == "variable") {
+      std::unique_lock lock(m_mutex);
       if (request.type() == HttpRequestType::POST) {
         m_variables[parsedPath[1]] = request.body();
       }
@@ -116,4 +147,6 @@ void HttpServer::handle_request(const std::string& requestStr, int destSock) {
       response.send(destSock);
     }
   }
+
+  close(destSock);
 }
