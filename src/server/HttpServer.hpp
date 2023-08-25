@@ -21,8 +21,10 @@ class HttpServer {
 
   void handleRequest(int destSock);
   void handleApi(int destSock, const HttpRequest& request);
-  void handleFile(int destSock, const std::string& path);
+  void handlePage(int destSock, const std::string& path);
   void handleMedia(int destSock, const std::string& path);
+
+  std::string findMediaLibrary(const std::string& key);
 
   public:
     HttpServer(int port);

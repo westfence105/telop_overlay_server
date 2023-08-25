@@ -16,6 +16,15 @@ HttpResponse::HttpResponse(const std::string& str) {
   this->status = 200;
   this->body = str;
   this->headers["Content-Type"] = "text/plain";
+  this->headers["Cache-Control"] = "max-age=600";
+  this->headers["Connection"] = "Close";
+}
+
+HttpResponse::HttpResponse(const nlohmann::json& json) {
+  this->status = 200;
+  this->body = json.dump();
+  this->headers["Content-Type"] = "application/json";
+  this->headers["Cache-Control"] = "max-age=600";
   this->headers["Connection"] = "Close";
 }
 
@@ -70,6 +79,7 @@ HttpResponse::HttpResponse(std::ifstream& file, const std::string& ext) {
     this->headers["Content-Type"] = "text/plain";
   }
 
+  this->headers["Cache-Control"] = "max-age=604800";
   this->headers["Connection"] = "Close";
 }
 

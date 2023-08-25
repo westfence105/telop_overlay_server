@@ -9,7 +9,7 @@ LDFLAGS += -lpthread
 
 all: $(BUILDDIR) $(BINDIR) $(BINDIR)/server$(EXT)
 
-$(BINDIR)/server$(EXT): $(addprefix $(BUILDDIR)/,main.o HttpServer.o HttpRequest.o HttpResponse.o)
+$(BINDIR)/server$(EXT): $(addprefix $(BUILDDIR)/server_,main.o HttpServer.o HttpRequest.o HttpResponse.o) $(addprefix $(BUILDDIR)/util_,PNG.o)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 $(BUILDDIR):
@@ -18,7 +18,10 @@ $(BUILDDIR):
 $(BINDIR):
 	$(MKDIR) $@
 
-$(BUILDDIR)/%.o: src/server/%.cpp
+$(BUILDDIR)/server_%.o: src/server/%.cpp
+	$(CXX) $(CFLAGS) -c -o $@ $^
+
+$(BUILDDIR)/util_%.o: src/util/%.cpp
 	$(CXX) $(CFLAGS) -c -o $@ $^
 
 clean:
