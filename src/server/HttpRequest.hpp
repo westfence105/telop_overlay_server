@@ -16,8 +16,17 @@ class HttpRequest {
   public:
     HttpRequest(const std::string& requestStr);
 
-    inline HttpRequestType type() { return m_type; }
-    inline const std::string& path() { return m_path; }
-    inline const std::string& header(const std::string& key) { return m_headers[key]; }
-    inline const std::string& body() { return m_body; }
+    inline HttpRequestType    type() const { return m_type; }
+    inline const std::string& path() const { return m_path; }
+    inline const std::string& body() const { return m_body; }
+    inline const std::string& header(const std::string& key) const {
+      auto iter = m_headers.find(key);
+      if (iter != m_headers.cend()) {
+        return iter->second;
+      }
+      else {
+        static const std::string empty = "";
+        return empty;
+      }
+    }
 };

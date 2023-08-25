@@ -11,7 +11,7 @@ class HttpResponse {
 
     HttpResponse(int status);
     HttpResponse(const std::string& str);
-    HttpResponse(std::ifstream& file);
+    HttpResponse(std::ifstream& file, const std::string& ext);
 
     void send(int destSock);
 };
