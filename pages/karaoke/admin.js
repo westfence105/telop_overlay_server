@@ -20,33 +20,26 @@ $(function() {
   fetch();
 
   $("#send_title").on('click', function() {
+    const title = $("#song_title").val();
     $.ajax('/api/variable/song-title', {
-      type: 'get',
+      type: 'post',
+      data: title,
       dataType: 'text'
-    }).then(
-      function (data) {
-        const title = $("#song_title").val();
-        $.ajax('/api/variable/song-title', {
-          type: 'post',
-          data: title,
-          dataType: 'text'
-        }).then(fetch);
+    }).then(fetch);
 
-        var song_list = $('#song_list').val();
-        if (song_list.length > 0) {
-          song_list = song_list.concat("\n", title);
-        }
-        else {
-          song_list = title;
-        }
-        $('#song_list').val(song_list);
-        $.ajax('/api/variable/song-list', {
-          type: 'post',
-          data: song_list,
-          dataType: 'text'
-        }).then(fetch);
-      }
-    );
+    var song_list = $('#song_list').val();
+    if (song_list.length > 0) {
+      song_list = song_list.concat("\n", title);
+    }
+    else {
+      song_list = title;
+    }
+    $('#song_list').val(song_list);
+    $.ajax('/api/variable/song-list', {
+      type: 'post',
+      data: song_list,
+      dataType: 'text'
+    }).then(fetch);
   });
 
   $("#send_list").on('click', function() {

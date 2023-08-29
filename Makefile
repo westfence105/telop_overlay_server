@@ -4,13 +4,19 @@ RM    := rm
 BINDIR   := bin
 BUILDDIR := build
 
-CFLAGS  += -Isrc/server -std=c++2a
-LDFLAGS += -lpthread
+SBDIR    := soundbag-http-server
+SBBINDIR := $(SBDIR)/bin
 
-all: $(BUILDDIR) $(BINDIR) $(BINDIR)/server$(EXT)
+CFLAGS  += -Isrc/include -I$(SBDIR)/src/include -std=c++2a -g
+LDFLAGS += -lsqlite3 -lpthread
 
-$(BINDIR)/server$(EXT): $(addprefix $(BUILDDIR)/server_,main.o HttpServer.o HttpRequest.o HttpResponse.o) $(addprefix $(BUILDDIR)/util_,PNG.o)
+all: $(BUILDDIR) $(BINDIR) $(SBBINDIR)/libsoundbag-httpserver.a $(BINDIR)/server$(EXT)
+
+$(BINDIR)/server$(EXT): $(addprefix $(BUILDDIR)/,server_main.o) $(SBBINDIR)/libsoundbag-httpserver.a
 	$(CXX) -o $@ $^ $(LDFLAGS)
+
+$(SBBINDIR)/libsoundbag-httpserver.a:
+	$(MAKE) -C $(SBDIR)
 
 $(BUILDDIR):
 	$(MKDIR) $@
@@ -18,10 +24,7 @@ $(BUILDDIR):
 $(BINDIR):
 	$(MKDIR) $@
 
-$(BUILDDIR)/server_%.o: src/server/%.cpp
-	$(CXX) $(CFLAGS) -c -o $@ $^
-
-$(BUILDDIR)/util_%.o: src/util/%.cpp
+$(BUILDDIR)/%.o: src/%.cpp
 	$(CXX) $(CFLAGS) -c -o $@ $^
 
 clean:

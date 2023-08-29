@@ -2,7 +2,7 @@
 #include <string>
 #include <stdexcept>
 
-#include <HttpServer.hpp>
+#include "soundbag/StatefulServer.hpp"
 
 void usage(const std::string& appname);
 
@@ -19,8 +19,15 @@ int main(int argc, char** argv) {
     }
   }
 
-  HttpServer server(port);
+  soundbag::StatefulServer server("", port);
   server.start();
+
+  char buf;
+  std::cout << "Server running on port " << port << "...\nPress 'x' to stop." << std::endl;
+  do {
+    std::cin >> buf;
+  } while (buf != 'x');
+  server.stop();
 
   return 0;
 }
